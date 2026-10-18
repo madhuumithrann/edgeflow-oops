@@ -20,7 +20,7 @@ bool readInt(const char* message, int& value) {
 
 int main() {
     LoadBalancer lb;
-    int choice;
+    int choice = 0;
 
     do {
         cout << "\n========== EDGEFLOW ==========\n";
@@ -149,12 +149,11 @@ int main() {
             metrics combined = m1 + m2;
 
             cout << "Combined Accepted Requests: "
-                 << s1->getacc_req() + s2->getacc_req() << '\n';
+                 << combined.getAcceptedRequests() << '\n';
             cout << "Combined Rejected Attempts: "
-                 << s1->getrej_req() + s2->getrej_req() << '\n';
+                 <<  combined.getRejectedRequests() << '\n';
             cout << "Average Utilization: "
-                 << (s1->getUtilization() + s2->getUtilization()) / 2.0
-                 << "%\n";
+                 <<combined.getOverallUtilization() << "%\n";
         }
 
         else if (choice == 6) {
