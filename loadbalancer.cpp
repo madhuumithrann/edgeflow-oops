@@ -30,29 +30,39 @@ void LoadBalancer::growArray()
     serverCapacity = newCap;
 }
 
-void LoadBalancer::addServer(int serverId, int capacity)
-{
+bool LoadBalancer::addServer(int serverId, int capacity) {
+    if (capacity <= 0)
+        return false;
+
+    for (int i = 0; i < serverCount; i++) {
+        if (servers[i]->getserver_ID() == serverId)
+            return false;
+    }
+
     if (serverCount == serverCapacity)
         growArray();
-    servers[serverCount++] = new EdgeServer(serverId, capacity);
+
+    servers[serverCount] = new EdgeServer(serverId, capacity);
+    serverCount++;
+    return true;
 }
 
-bool LoadBalancer::assignRequest(const Request& req, int* assignedServerId)
-{
-    if (!req.isValid() || serverCount == 0)
-    {
+bool LoadBalancer::assignRequest(const Request& req, int* assignedServerId) {
+    if (!req.isValid() || serverCount == 0) {
         rejectedCount++;
         return false;
     }
 
-    // Round Robin method used
-    for (int tried = 0; tried < serverCount; tried++)
-    {
+    for (int tried = 0; tried < serverCount; tried++) {
         int idx = (nextIndex + tried) % serverCount;
-        if (servers[idx]->acceptRequest(req)) {
+
+        if (servers[idx]->accept_req(req.getWorkload())) {
             nextIndex = (idx + 1) % serverCount;
             acceptedCount++;
-            if (assignedServerId) *assignedServerId = servers[idx]->getId();
+
+            if (assignedServerId != 0)
+                *assignedServerId = servers[idx]->getserver_ID();
+
             return true;
         }
     }
@@ -83,10 +93,4 @@ EdgeServer* LoadBalancer::getServer(int index) const
         return 0;
     }
     return servers[index];
-}
-
-void LoadBalancer::displayServers() const
-{
-    for (int i = 0; i < serverCount; i++)
-        servers[i]->display();
 }
