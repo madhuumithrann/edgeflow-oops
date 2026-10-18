@@ -22,16 +22,15 @@ EdgeServer::~EdgeServer(){
 
 }
 
-bool EdgeServer::accept_req(){
-    if (this->curr_load < this->capacity){
-        this->curr_load++;
-        this->acc_req++;
-        return true;
-    }
-    else{
-        this->rej_req++;
+bool EdgeServer::accept_req(int workload) {
+    if (workload <= 0 || workload > capacity - curr_load) {
+        rej_req++;
         return false;
     }
+
+    curr_load += workload;
+    acc_req++;
+    return true;
 }
 
 void EdgeServer::release_req(){
