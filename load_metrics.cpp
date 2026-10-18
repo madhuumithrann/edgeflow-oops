@@ -1,69 +1,96 @@
-#include<iostream>
-#include"load_metrics.h"
-#include"EdgeServer.h"
+#include "load_metrics.h"
 
-metrics::~metrics(){};
-
-bool metrics::operator==(const metrics& other) const{
-    return(this->overallUtilization==other.overallUtilization);
+metrics::metrics(int accept, int reject, double utilization)
+    : totalAcceptedRequests(accept),
+      totalRejectedRequests(reject),
+      overallUtilization(utilization)
+{
 }
 
-bool metrics::operator>(const metrics& other) const{
-    return(this->overallUtilization>other.overallUtilization);
+void metrics::calculateMetrics(const LoadBalancer& lb)
+{
+    double totalCapacity = 0;
+    double totalLoad = 0;
 
-}
-
-metrics metrics::operator+(const metrics& other) const{
-    return metrics(this->totalAcceptedRequests+other.totalAcceptedRequests,this->totalRejectedRequests+other.totalRejectedRequests);
-}
-
-void metrics::calculateMetrics(EdgeServer servers[], int serverCount){
-    double capacity;
-    double load;
-    double tot_capacity=0.0;
-    double tot_load=0.0;
-    for(int i=0;i<serverCount;i++){
-        capacity=servers[i].getCapacity();
-        load=servers[i].getCurrentLoad();
-        tot_capacity+=capacity;
-        tot_load+=load;
-       
-
-    }
-    if(tot_capacity>0){
-        this->overallUtilization=(tot_load/tot_capacity)*1.0;
-    }
-}
-
-EdgeServer metrics::findMostLoadedServer(EdgeServer servers[], int serverCount) const{
-    EdgeServer most_loaded=servers[0];
-    for(int i=1;i<serverCount;i++){
-        if(most_loaded.getCurrentLoad()<servers[i].getCurrentLoad()){
-            most_loaded=servers[i];
-        }
+    for (int i = 0; i < lb.getServerCount(); i++) {
+        EdgeServer* server = lb.getServer(i);
+        totalCapacity += server->getcapacity();
+        totalLoad += server->getcurr_load();
     }
 
-    return most_loaded;
+    if (totalCapacity > 0)
+        overallUtilization = totalLoad / totalCapacity * 100.0;
+    else
+        overallUtilization = 0;
 }
-EdgeServer metrics::findLeastLoadedServer(EdgeServer servers[], int serverCount) const{
-    EdgeServer least_loaded=servers[0];
-    for(int i=1;i<serverCount;i++){
-        if(least_loaded.getCurrentLoad()>servers[i].getCurrentLoad()){
-            least_loaded=servers[i];
-        }
+
+EdgeServer* metrics::findMostLoadedServer(const LoadBalancer& lb) const
+{
+    if (lb.getServerCount() == 0)
+        return 0;
+
+    EdgeServer* best = lb.getServer(0);
+
+    for (int i = 1; i < lb.getServerCount(); i++) {
+        EdgeServer* server = lb.getServer(i);
+
+        if (server->getUtilization() > best->getUtilization())
+            best = server;
     }
 
-    return least_loaded;
+    return best;
 }
 
-void printServerMetricsReport(const metrics& metrics, const EdgeServer& server){
-    std::cout<<"PRINTING SERVER METRICS:";
-    std::cout<<"OVERALL UTILIZATION PERCENTAGE(%):"<<metrics.overallUtilization<<std::endl;
-    std::cout<<"CURRENT LOAD OF SERVER:"<<server.getCurrentLoad()<<std::endl;
-    std::cout<<"CAPACITY OF SERVER:"<<server.getCapacity();
+EdgeServer* metrics::findLeastLoadedServer(const LoadBalancer& lb) const
+{
+    if (lb.getServerCount() == 0)
+        return 0;
 
+    EdgeServer* best = lb.getServer(0);
+
+    for (int i = 1; i < lb.getServerCount(); i++) {
+        EdgeServer* server = lb.getServer(i);
+
+        if (server->getUtilization() < best->getUtilization())
+            best = server;
+    }
+
+    return best;
 }
 
+double metrics::getOverallUtilization() const
+{
+    return overallUtilization;
+}
+
+int metrics::getAcceptedRequests() const
+{
+    return totalAcceptedRequests;
+}
+
+int metrics::getRejectedRequests() const
+{
+    return totalRejectedRequests;
+}
+
+bool metrics::operator==(const metrics& other) const
+{
+    return overallUtilization == other.overallUtilization;
+}
+
+bool metrics::operator>(const metrics& other) const
+{
+    return overallUtilization > other.overallUtilization;
+}
+
+metrics metrics::operator+(const metrics& other) const
+{
+    return metrics(
+        totalAcceptedRequests + other.totalAcceptedRequests,
+        totalRejectedRequests + other.totalRejectedRequests,
+        (overallUtilization + other.overallUtilization) / 2.0
+    );
+}
 
 
 
