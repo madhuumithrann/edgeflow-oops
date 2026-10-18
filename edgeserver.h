@@ -14,7 +14,7 @@ public:
     EdgeServer(int ID, int cap);
     ~EdgeServer();
 
-    bool accept_req();
+    bool accept_req(int workload);
     void release_req();
 
     int getserver_ID() const;
