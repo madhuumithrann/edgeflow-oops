@@ -1,0 +1,8 @@
+edgeflow
+edgeflow.exe
+edgeflow_tests
+edgeflow_tests.exe
+edgeflow_sanitized
+edgeflow_tests_sanitized
+*.o
+*.obj

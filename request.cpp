@@ -12,19 +12,22 @@ Request::Request() : id(nextId++), workload(0)
     totalCreated++;
 }
 
-Request::Request(int workload) : id(nextId++), workload(workload)
+Request::Request(int work) : id(nextId++), workload(work)
 {
     totalCreated++;
 }
 
+// A copy is the same logical request: same id, same workload, and it does not
+// consume a new id or increase totalCreated.
 Request::Request(const Request& other) : id(other.id), workload(other.workload)
 {
-    
+
 }
 
+// Intentionally silent: a message here would print for every temporary or copy
+// and clutter the program output.
 Request::~Request()
 {
-    cout << "Request #" << id << " destroyed.";
 }
 
 int Request::getId() const
@@ -36,7 +39,7 @@ int Request::getWorkload() const
 {
     return workload;
 }
-bool Request::isValid() const 
+bool Request::isValid() const
 {
     return workload > 0;
 }
