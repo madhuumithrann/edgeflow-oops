@@ -1,3 +1,4 @@
+
 #ifndef LOAD_METRICS_H
 #define LOAD_METRICS_H
 
@@ -13,8 +14,10 @@ public:
     metrics(int accept = 0, int reject = 0, double utilization = 0.0);
 
     void calculateMetrics(const LoadBalancer& lb);
+
     EdgeServer* findMostLoadedServer(const LoadBalancer& lb) const;
     EdgeServer* findLeastLoadedServer(const LoadBalancer& lb) const;
+
     double getOverallUtilization() const;
     int getAcceptedRequests() const;
     int getRejectedRequests() const;
