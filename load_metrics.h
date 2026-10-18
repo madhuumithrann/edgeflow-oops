@@ -16,6 +16,8 @@ public:
     EdgeServer* findMostLoadedServer(const LoadBalancer& lb) const;
     EdgeServer* findLeastLoadedServer(const LoadBalancer& lb) const;
     double getOverallUtilization() const;
+    int getAcceptedRequests() const;
+    int getRejectedRequests() const;
 
     bool operator==(const metrics& other) const;
     bool operator>(const metrics& other) const;
