@@ -4,7 +4,6 @@
 using namespace std;
 
 int Request::nextId = 1;
-
 int Request::totalCreated = 0;
 
 Request::Request() : id(nextId++), workload(0)
@@ -17,14 +16,14 @@ Request::Request(int workload) : id(nextId++), workload(workload)
     totalCreated++;
 }
 
-Request::Request(const Request& other) : id(other.id), workload(other.workload)
+Request::Request(const Request& other)
+    : id(nextId++), workload(other.workload)
 {
-    
+    totalCreated++;
 }
 
 Request::~Request()
 {
-    cout << "Request #" << id << " destroyed.";
 }
 
 int Request::getId() const
@@ -36,7 +35,8 @@ int Request::getWorkload() const
 {
     return workload;
 }
-bool Request::isValid() const 
+
+bool Request::isValid() const
 {
     return workload > 0;
 }
