@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>EdgeFlow: load_metrics Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #0e1117;
+            color: #fafafa;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1000px;
+            margin: auto;
+        }
+        h1 {
+            color: #ffffff;
+            border-bottom: 2px solid #262730;
+            padding-bottom: 10px;
+        }
+        .kpi-container {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .kpi-card {
+            background-color: #1e2129;
+            border: 1px solid #262730;
+            border-radius: 8px;
+            padding: 20px;
+            flex: 1;
+            text-align: center;
+        }
+        .kpi-card h3 {
+            margin: 0 0 10px 0;
+            font-size: 16px;
+            color: #a3a8b8;
+        }
+        .kpi-card .value {
+            font-size: 28px;
+            font-weight: bold;
+            color: #ffffff;
+        }
+        .section {
+            background-color: #1e2129;
+            border: 1px solid #262730;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .progress-bar-container {
+            background-color: #262730;
+            border-radius: 4px;
+            height: 20px;
+            width: 100%;
+            margin-top: 10px;
+            overflow: hidden;
+        }
+        .progress-bar {
+            background-color: #00ff66;
+            height: 100%;
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+        .extremes-container {
+            display: flex;
+            gap: 20px;
+        }
+        .extreme-card {
+            flex: 1;
+            border-radius: 8px;
+            padding: 20px;
+        }
+        .most-loaded {
+            background-color: rgba(255, 75, 75, 0.15);
+            border: 1px solid rgba(255, 75, 75, 0.4);
+        }
+        .least-loaded {
+            background-color: rgba(75, 255, 110, 0.15);
+            border: 1px solid rgba(75, 255, 110, 0.4);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📊 EdgeFlow: <code>load_metrics</code> Dashboard</h1>
+        <p style="color: #a3a8b8;">Standalone telemetry interface powered by backend mock data.</p>
+
+        <!-- KPI Cards -->
+        <div class="kpi-container">
+            <div class="kpi-card">
+                <h3>Overall System Utilization</h3>
+                <div class="value" id="utilization-val">0.0%</div>
+            </div>
+            <div class="kpi-card">
+                <h3>Accepted Requests</h3>
+                <div class="value" id="accepted-val">1,420</div>
+            </div>
+            <div class="kpi-card">
+                <h3>Rejected Requests</h3>
+                <div class="value" id="rejected-val">85</div>
+            </div>
+        </div>
+
+        <!-- System Load Distribution -->
+        <div class="section">
+            <h3>System Load Distribution</h3>
+            <div class="progress-bar-container">
+                <div class="progress-bar" id="load-progress"></div>
+            </div>
+            <p id="load-text" style="margin-top: 10px; color: #a3a8b8; font-size: 14px;"></p>
+        </div>
+
+        <!-- Node Load Extremes -->
+        <div class="extremes-container">
+            <div class="extreme-card most-loaded">
+                <h3 style="color: #ff4b4b; margin-top: 0;">🔴 Most Loaded Server</h3>
+                <p id="most-loaded-text">Loading...</p>
+            </div>
+            <div class="extreme-card least-loaded">
+                <h3 style="color: #4bbe6e; margin-top: 0;">🟢 Least Loaded Server</h3>
+                <p id="least-loaded-text">Loading...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Emulating C++ EdgeServer class structure
+        class EdgeServer {
+            constructor(id, capacity, currentLoad) {
+                this.id = id;
+                this.capacity = capacity;
+                this.currentLoad = currentLoad;
+            }
+            getUtilization() {
+                return this.capacity > 0 ? (this.currentLoad / this.capacity) * 100 : 0;
+            }
+        }
+
+        // Emulating C++ LoadBalancer class structure
+        class LoadBalancer {
+            constructor(servers) {
+                this.servers = servers;
+            }
+            getServerCount() { return this.servers.length; }
+            getServer(i) { return this.servers[i]; }
+        }
+
+        // Emulating C++ metrics class logic
+        class MetricsEngine {
+            constructor(accepted, rejected) {
+                this.totalAccepted = accepted;
+                this.totalRejected = rejected;
+                this.overallUtilization = 0;
+            }
+
+            calculateMetrics(lb) {
+                let totalCapacity = 0;
+                let totalLoad = 0;
+                for (let i = 0; i < lb.getServerCount(); i++) {
+                    let server = lb.getServer(i);
+                    totalCapacity += server.capacity;
+                    totalLoad += server.currentLoad;
+                }
+                this.overallUtilization = totalCapacity > 0 ? (totalLoad / totalCapacity) * 100 : 0;
+                return { totalLoad, totalCapacity };
+            }
+
+            findMostLoadedServer(lb) {
+                if (lb.getServerCount() === 0) return null;
+                let best = lb.getServer(0);
+                for (let i = 1; i < lb.getServerCount(); i++) {
+                    let server = lb.getServer(i);
+                    if (server.getUtilization() > best.getUtilization()) {
+                        best = server;
+                    }
+                }
+                return best;
+            }
+
+            findLeastLoadedServer(lb) {
+                if (lb.getServerCount() === 0) return null;
+                let best = lb.getServer(0);
+                for (let i = 1; i < lb.getServerCount(); i++) {
+                    let server = lb.getServer(i);
+                    if (server.getUtilization() < best.getUtilization()) {
+                        best = server;
+                    }
+                }
+                return best;
+            }
+        }
+
+        // Initialize mock data mimicking your C++ backend
+        const servers = [
+            new EdgeServer("Server_01", 1000, 150),
+            new EdgeServer("Server_02", 1000, 680),
+            new EdgeServer("Server_03", 1000, 950),
+            new EdgeServer("Server_04", 1000, 310)
+        ];
+
+        const lb = new LoadBalancer(servers);
+        const metrics = new MetricsEngine(1420, 85);
+        
+        const totals = metrics.calculateMetrics(lb);
+        const mostLoaded = metrics.findMostLoadedServer(lb);
+        const leastLoaded = metrics.findLeastLoadedServer(lb);
+
+        // Bind data to HTML elements
+        document.getElementById('utilization-val').innerText = metrics.overallUtilization.toFixed(1) + '%';
+        document.getElementById('accepted-val').innerText = metrics.totalAccepted.toLocaleString();
+        document.getElementById('rejected-val').innerText = metrics.totalRejected.toLocaleString();
+
+        document.getElementById('load-progress').style.width = metrics.overallUtilization + '%';
+        document.getElementById('load-text').innerText = `Total Network Load: ${totals.totalLoad} / ${totals.totalCapacity} Units`;
+
+        if (mostLoaded) {
+            document.getElementById('most-loaded-text').innerHTML = `
+                <strong>ID:</strong> ${mostLoaded.id}<br><br>
+                <strong>Load:</strong> ${mostLoaded.currentLoad} / ${mostLoaded.capacity} (${mostLoaded.getUtilization().toFixed(1)}%)
+            `;
+        }
+
+        if (leastLoaded) {
+            document.getElementById('least-loaded-text').innerHTML = `
+                <strong>ID:</strong> ${leastLoaded.id}<br><br>
+                <strong>Load:</strong> ${leastLoaded.currentLoad} / ${leastLoaded.capacity} (${leastLoaded.getUtilization().toFixed(1)}%)
+            `;
+        }
+    </script>
+</body>
+</html>
